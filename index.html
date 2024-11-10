@@ -47,213 +47,112 @@
       box-shadow: 0 0 5px 2px #00ff00;
     }
 
-    .draggable {
+    .window {
       position: absolute;
+      top: 50px;
+      left: 50px;
+      width: 480px;
+      height: 500px;
+      background-color: #2e2e2e;
+      color: white;
+      border-radius: 5px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+      overflow: auto;
+      z-index: 1000;
+    }
+
+    .window-header {
       background-color: #333;
       color: #fff;
       padding: 10px;
-      border-radius: 5px;
-      width: 300px;
-      height: 200px;
-      overflow: auto;
-      resize: both;
-      box-sizing: border-box;
-      z-index: 999;
+      cursor: move;
+      user-select: none;
+      border-radius: 5px 5px 0 0;
     }
 
-    .resizable-handle {
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      width: 16px;
-      height: 16px;
-      background-color: #00ff00;
-      cursor: se-resize;
+    .window-content {
+      padding: 10px;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+
+    #console-footer {
+      background-color: #333;
+      color: white;
+      padding: 5px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-
   <div id="console"></div>
-  <input type="text" id="cmdInput" placeholder="Enter command..." autofocus />
+  <input type="text" id="commandInput" placeholder="Enter command" />
+
+  <div id="console-footer">
+    Command Handler v1.0
+  </div>
 
   <script>
-    const consoleDiv = document.getElementById('console');
-    const inputField = document.getElementById('cmdInput');
-    
-    let loadedWindows = []; // Array to keep track of all loaded raw HTML windows
+    const consoleElement = document.getElementById("console");
+    const commandInput = document.getElementById("commandInput");
+    let loadedWindow = null;
 
-    // Function to append text to the console
-    function appendToConsole(text) {
-      consoleDiv.innerHTML += text + "<br>";
-      consoleDiv.scrollTop = consoleDiv.scrollHeight; // Scroll to the bottom
-    }
-
-    // Function to clear the console
-    function clearConsole() {
-      consoleDiv.innerHTML = '';
-    }
-
-    // Function to create a draggable and resizable window for raw HTML content
-    function createDraggableWindow(rawHtml) {
-      const window = document.createElement('div');
-      window.classList.add('draggable');
-      window.innerHTML = rawHtml;
-
-      // Add resizable handle
-      const resizableHandle = document.createElement('div');
-      resizableHandle.classList.add('resizable-handle');
-      window.appendChild(resizableHandle);
-
-      // Add window to the array
-      loadedWindows.push(window);
-
-      // Make the window draggable
-      let isDragging = false;
-      let offsetX, offsetY;
-
-      window.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        offsetX = e.clientX - window.offsetLeft;
-        offsetY = e.clientY - window.offsetTop;
-      });
-
-      window.addEventListener('mousemove', (e) => {
-        if (isDragging) {
-          window.style.left = `${e.clientX - offsetX}px`;
-          window.style.top = `${e.clientY - offsetY}px`;
-        }
-      });
-
-      window.addEventListener('mouseup', () => {
-        isDragging = false;
-      });
-
-      // Make the window resizable
-      let isResizing = false;
-      let initialWidth, initialHeight, initialMouseX, initialMouseY;
-
-      resizableHandle.addEventListener('mousedown', (e) => {
-        isResizing = true;
-        initialWidth = window.offsetWidth;
-        initialHeight = window.offsetHeight;
-        initialMouseX = e.clientX;
-        initialMouseY = e.clientY;
-        e.preventDefault(); // Prevent text selection while resizing
-      });
-
-      window.addEventListener('mousemove', (e) => {
-        if (isResizing) {
-          const widthDiff = e.clientX - initialMouseX;
-          const heightDiff = e.clientY - initialMouseY;
-          window.style.width = `${initialWidth + widthDiff}px`;
-          window.style.height = `${initialHeight + heightDiff}px`;
-        }
-      });
-
-      window.addEventListener('mouseup', () => {
-        if (isResizing) {
-          isResizing = false;
-        }
-      });
-
-      document.body.appendChild(window);
-    }
-
-    // Function to unload all loaded raw HTML windows
-    function unloadWindows() {
-      loadedWindows.forEach(window => {
-        window.remove();
-      });
-      loadedWindows = []; // Clear the array of loaded windows
-    }
-
-    // Handle the command input
-    function handleCommand(command) {
-      const parts = command.split(' ');
-      const mainCommand = parts[0];
-      const argument = parts.slice(1).join(' ');
-
-      switch (mainCommand) {
-        case 'say':
-          appendToConsole(`Echo: ${argument}`);
-          break;
-
-        case 'walk':
-          appendToConsole(`walked ${argument} steps`);
-          break;
-
-        case 'turn':
-          appendToConsole(`turned ${argument} degrees`);
-          break;
-
-        case 'connect':
-          if (argument === 'remotely' || argument === 'inapp') {
-            appendToConsole('Username: \nPassword:');
-          } else {
-            appendToConsole('Invalid option. Use "remotely" or "inapp" after connect.');
-          }
-          break;
-
-        case 'jump':
-          appendToConsole('jumped');
-          break;
-
-        case 'keyboard':
-          window.open('https://manascale.github.io/keyboard', '_blank');
-          break;
-
-        case 'disconnect':
-          appendToConsole('Disconnected');
-          break;
-
-        case 'newgame':
-          appendToConsole(`join ${argument}`);
-          break;
-
-        case 'follow':
-          appendToConsole(`following ${argument}`);
-          break;
-
-        case 'unfollow':
-          appendToConsole('no longer following');
-          break;
-
-        case 'load':
-          fetch(argument)
-            .then(response => response.text())
-            .then(data => createDraggableWindow(data))
-            .catch(error => appendToConsole('Error loading URL'));
-          break;
-
-        case 'unload':
-          unloadWindows(); // Unload all windows when the command is run
-          appendToConsole('All raw HTML windows unloaded.');
-          break;
-
-        case 'clear':
-          clearConsole();
-          break;
-
-        default:
-          appendToConsole('Command not recognized');
-          break;
-      }
-    }
-
-    // Event listener for input
-    inputField.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') {
-        const command = inputField.value.trim();
-        if (command) {
-          appendToConsole(`> ${command}`);
-          handleCommand(command);
-        }
-        inputField.value = ''; // Clear the input field
+    commandInput.addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        const command = commandInput.value.trim();
+        processCommand(command);
+        commandInput.value = "";
       }
     });
 
-  </script>
+    function processCommand(command) {
+      if (command.startsWith("load ")) {
+        loadRawHTML(command.substring(5).trim());
+      } else if (command === "unload") {
+        unloadRawHTML();
+      } else if (command === "clear") {
+        consoleElement.innerHTML = "";
+      } else {
+        consoleElement.innerHTML += `Unknown command: ${command}\n`;
+      }
+    }
 
+    function loadRawHTML(url) {
+      fetch(url)
+        .then(response => response.text())
+        .then(data => {
+          // Create a fixed 480x500 window to display the raw HTML content
+          if (loadedWindow) {
+            document.body.removeChild(loadedWindow);
+          }
+
+          loadedWindow = document.createElement("div");
+          loadedWindow.classList.add("window");
+
+          const windowHeader = document.createElement("div");
+          windowHeader.classList.add("window-header");
+          windowHeader.textContent = "Raw HTML Window";
+
+          const windowContent = document.createElement("div");
+          windowContent.classList.add("window-content");
+          windowContent.textContent = data; // Display raw HTML as text
+
+          loadedWindow.appendChild(windowHeader);
+          loadedWindow.appendChild(windowContent);
+          document.body.appendChild(loadedWindow);
+        })
+        .catch(error => {
+          consoleElement.innerHTML += `Failed to load URL: ${error.message}\n`;
+        });
+    }
+
+    function unloadRawHTML() {
+      if (loadedWindow) {
+        document.body.removeChild(loadedWindow);
+        loadedWindow = null;
+        consoleElement.innerHTML += "Raw HTML window unloaded.\n";
+      }
+    }
+  </script>
 </body>
 </html>
