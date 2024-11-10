@@ -3,26 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Custom Command Prompt</title>
+  <title>Enhanced Command Prompt</title>
   <style>
     body {
       font-family: 'Courier New', Courier, monospace;
       background-color: #121212;
-      color: #00ff00;
-      padding: 20px;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
     }
-    .console {
-      width: 100%;
-      height: 400px;
+
+    #cmdWindow {
+      width: 80%;
+      height: 70%;
+      background-color: #1a1a1a;
+      position: fixed;
+      bottom: 0;
+      left: 10%;
+      border: 2px solid #00ff00;
+      color: #00ff00;
+      padding: 10px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      border-radius: 5px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    #console {
+      flex-grow: 1;
       overflow-y: auto;
+      padding: 10px;
       white-space: pre-wrap;
       word-wrap: break-word;
     }
+
+    #taskbar {
+      background-color: #121212;
+      color: #00ff00;
+      padding: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid #00ff00;
+      cursor: pointer;
+    }
+
+    .taskButton {
+      background-color: #121212;
+      color: #00ff00;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
     .input-container {
       margin-top: 10px;
+      display: flex;
     }
+
     input {
-      width: 100%;
+      flex-grow: 1;
       background-color: #121212;
       color: #00ff00;
       border: none;
@@ -30,25 +71,69 @@
       font-size: 16px;
       padding: 5px;
     }
+
+    .maximized {
+      width: 100% !important;
+      height: 100% !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+    }
   </style>
 </head>
 <body>
 
-  <div class="console" id="console">
-    Welcome to the Custom Command Prompt!
-    <br> Type "newcmd <command_name>" to create a new command.
-  </div>
-  
-  <div class="input-container">
-    <input type="text" id="cmdInput" placeholder="Enter command..." autofocus>
+  <div id="cmdWindow">
+    <div id="console">
+      Welcome to the Enhanced Command Prompt!<br>
+      Type "newcmd <command_name>" to create a new command.<br>
+    </div>
+    <div id="taskbar">
+      <button class="taskButton" id="minimizeBtn">_</button>
+      <button class="taskButton" id="maximizeBtn">[ ]</button>
+      <button class="taskButton" id="closeBtn">X</button>
+    </div>
+    <div class="input-container">
+      <input type="text" id="cmdInput" placeholder="Enter command..." autofocus>
+    </div>
   </div>
 
   <script>
+    const cmdWindow = document.getElementById('cmdWindow');
     const consoleDiv = document.getElementById('console');
     const inputField = document.getElementById('cmdInput');
+    const minimizeBtn = document.getElementById('minimizeBtn');
+    const maximizeBtn = document.getElementById('maximizeBtn');
+    const closeBtn = document.getElementById('closeBtn');
     const customCommands = {};
 
-    // Function to handle input commands
+    let isMaximized = false;
+    let isMinimized = false;
+
+    // Dragging functionality
+    let isDragging = false;
+    let offsetX, offsetY;
+
+    cmdWindow.addEventListener('mousedown', (e) => {
+      if (e.target === cmdWindow) {
+        isDragging = true;
+        offsetX = e.clientX - cmdWindow.getBoundingClientRect().left;
+        offsetY = e.clientY - cmdWindow.getBoundingClientRect().top;
+      }
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        cmdWindow.style.left = `${e.clientX - offsetX}px`;
+        cmdWindow.style.top = `${e.clientY - offsetY}px`;
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+
+    // Command Handling
     function handleCommand(command) {
       if (command.startsWith('newcmd ')) {
         const commandName = command.split(' ')[1];
@@ -65,12 +150,10 @@
       } else {
         consoleDiv.innerHTML += `<br>Command not recognized: ${command}`;
       }
-
-      // Keep the console scrolled to the bottom
       consoleDiv.scrollTop = consoleDiv.scrollHeight;
     }
 
-    // Event listener for the input field
+    // Event listener for input field
     inputField.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') {
         const command = inputField.value.trim();
@@ -78,8 +161,42 @@
           consoleDiv.innerHTML += `<br>&gt; ${command}`;
           handleCommand(command);
         }
-        inputField.value = ''; // Clear the input field
+        inputField.value = ''; // Clear input field
       }
+    });
+
+    // Minimize functionality
+    minimizeBtn.addEventListener('click', () => {
+      if (!isMinimized) {
+        cmdWindow.style.height = '30px';
+        cmdWindow.style.bottom = '0';
+        consoleDiv.style.display = 'none';
+        minimizeBtn.innerText = '[ ]';
+        isMinimized = true;
+      } else {
+        cmdWindow.style.height = '70%';
+        consoleDiv.style.display = 'block';
+        minimizeBtn.innerText = '_';
+        isMinimized = false;
+      }
+    });
+
+    // Maximize functionality
+    maximizeBtn.addEventListener('click', () => {
+      if (!isMaximized) {
+        cmdWindow.classList.add('maximized');
+        maximizeBtn.innerText = '[-]';
+        isMaximized = true;
+      } else {
+        cmdWindow.classList.remove('maximized');
+        maximizeBtn.innerText = '[ ]';
+        isMaximized = false;
+      }
+    });
+
+    // Close functionality
+    closeBtn.addEventListener('click', () => {
+      cmdWindow.style.display = 'none';
     });
   </script>
 
