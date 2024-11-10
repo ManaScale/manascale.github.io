@@ -47,6 +47,19 @@
       box-shadow: 0 0 5px 2px #00ff00;
     }
 
+    .draggable {
+      position: absolute;
+      background-color: #333;
+      color: #fff;
+      padding: 10px;
+      border-radius: 5px;
+      width: 80%;
+      height: 80%;
+      overflow: auto;
+      resize: both;
+      box-sizing: border-box;
+      z-index: 999;
+    }
   </style>
 </head>
 <body>
@@ -67,6 +80,36 @@
     // Function to clear the console
     function clearConsole() {
       consoleDiv.innerHTML = '';
+    }
+
+    // Function to create a draggable and resizable window for raw HTML content
+    function createDraggableWindow(rawHtml) {
+      const window = document.createElement('div');
+      window.classList.add('draggable');
+      window.innerHTML = rawHtml;
+
+      // Make the window draggable
+      let isDragging = false;
+      let offsetX, offsetY;
+
+      window.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        offsetX = e.clientX - window.offsetLeft;
+        offsetY = e.clientY - window.offsetTop;
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+          window.style.left = `${e.clientX - offsetX}px`;
+          window.style.top = `${e.clientY - offsetY}px`;
+        }
+      });
+
+      window.addEventListener('mouseup', () => {
+        isDragging = false;
+      });
+
+      document.body.appendChild(window);
     }
 
     // Handle the command input
