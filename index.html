@@ -64,6 +64,11 @@
       consoleDiv.scrollTop = consoleDiv.scrollHeight; // Scroll to the bottom
     }
 
+    // Function to clear the console
+    function clearConsole() {
+      consoleDiv.innerHTML = '';
+    }
+
     // Handle the command input
     function handleCommand(command) {
       const parts = command.split(' ');
@@ -120,6 +125,10 @@
             .then(response => response.text())
             .then(data => createDraggableWindow(data))
             .catch(error => appendToConsole('Error loading URL'));
+          break;
+
+        case 'clear':
+          clearConsole();
           break;
 
         default:
