@@ -70,6 +70,8 @@
   <script>
     const consoleDiv = document.getElementById('console');
     const inputField = document.getElementById('cmdInput');
+    
+    let loadedWindows = []; // Array to keep track of all loaded raw HTML windows
 
     // Function to append text to the console
     function appendToConsole(text) {
@@ -87,6 +89,9 @@
       const window = document.createElement('div');
       window.classList.add('draggable');
       window.innerHTML = rawHtml;
+
+      // Add window to the array
+      loadedWindows.push(window);
 
       // Make the window draggable
       let isDragging = false;
@@ -110,6 +115,14 @@
       });
 
       document.body.appendChild(window);
+    }
+
+    // Function to unload all loaded raw HTML windows
+    function unloadWindows() {
+      loadedWindows.forEach(window => {
+        window.remove();
+      });
+      loadedWindows = []; // Clear the array of loaded windows
     }
 
     // Handle the command input
@@ -168,6 +181,11 @@
             .then(response => response.text())
             .then(data => createDraggableWindow(data))
             .catch(error => appendToConsole('Error loading URL'));
+          break;
+
+        case 'unload':
+          unloadWindows(); // Unload all windows when the command is run
+          appendToConsole('All raw HTML windows unloaded.');
           break;
 
         case 'clear':
