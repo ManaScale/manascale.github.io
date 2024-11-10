@@ -3,175 +3,85 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Command Console</title>
+  <title>Custom Command Prompt</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background-color: #f5f5f5;
-      margin: 0;
+      font-family: 'Courier New', Courier, monospace;
+      background-color: #121212;
+      color: #00ff00;
+      padding: 20px;
     }
     .console {
-      background-color: #333;
-      color: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      width: 500px;
-      max-width: 100%;
-      position: absolute; /* Allow for dragging */
-      top: 50px; /* Initial position */
-      left: 50px; /* Initial position */
-      resize: both;
-      overflow: auto;
-      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-    }
-    .output {
-      height: 200px;
+      width: 100%;
+      height: 400px;
       overflow-y: auto;
-      margin-bottom: 10px;
-      border: 1px solid #555;
-      padding: 10px;
-      border-radius: 4px;
-      background-color: #222;
+      white-space: pre-wrap;
+      word-wrap: break-word;
     }
-    .input {
-      display: flex;
-      gap: 10px;
+    .input-container {
+      margin-top: 10px;
     }
-    .input input {
-      flex: 1;
-      padding: 10px;
-      border-radius: 4px;
-      border: 1px solid #555;
-      background-color: #444;
-      color: #fff;
-    }
-    .input button {
-      padding: 10px;
-      border-radius: 4px;
-      border: 1px solid #555;
-      background-color: #555;
-      color: #fff;
-      cursor: pointer;
-    }
-    .fullscreen-button {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      padding: 5px 10px;
-      background-color: #555;
+    input {
+      width: 100%;
+      background-color: #121212;
+      color: #00ff00;
       border: none;
-      border-radius: 4px;
-      color: #fff;
-      cursor: pointer;
+      outline: none;
+      font-size: 16px;
+      padding: 5px;
     }
   </style>
 </head>
 <body>
+
   <div class="console" id="console">
-    <button class="fullscreen-button" id="fullscreenButton">Fullscreen</button>
-    <div class="output" id="output"></div>
-    <div class="input">
-      <input type="text" id="commandInput" placeholder="Enter command...">
-      <button onclick="executeCommand()">Run</button>
-    </div>
+    Welcome to the Custom Command Prompt!
+    <br> Type "newcmd <command_name>" to create a new command.
+  </div>
+  
+  <div class="input-container">
+    <input type="text" id="cmdInput" placeholder="Enter command..." autofocus>
   </div>
 
   <script>
-    const outputElement = document.getElementById('output');
-    const commandInput = document.getElementById('commandInput');
-    const consoleElement = document.getElementById('console');
-    const fullscreenButton = document.getElementById('fullscreenButton');
+    const consoleDiv = document.getElementById('console');
+    const inputField = document.getElementById('cmdInput');
+    const customCommands = {};
 
-    const commandRegistry = {};
-
-    function commands(...args) {
-      args.forEach(arg => {
-        commandRegistry[arg.name] = arg;
-      });
-    }
-
-    commands(
-      function help() {
-        return 'Available commands: ' + Object.keys(commandRegistry).join(', ');
-      },
-      function greet() {
-        return 'Hello, world!';
-      },
-      function date() {
-        return new Date().toString();
-      },
-      function say(...args) {
-        return args.join(' ');
-      }
-    );
-
-    function executeCommand() {
-      const input = commandInput.value.trim();
-      const [command, ...args] = input.split(' ');
-
-      if (commandRegistry[command]) {
-        const result = commandRegistry[command](...args);
-        output(`> ${input}\n${result}`);
+    // Function to handle input commands
+    function handleCommand(command) {
+      if (command.startsWith('newcmd ')) {
+        const commandName = command.split(' ')[1];
+        if (commandName) {
+          customCommands[commandName] = () => {
+            consoleDiv.innerHTML += `<br>Command '${commandName}' executed successfully!`;
+          };
+          consoleDiv.innerHTML += `<br>New command '${commandName}' created. Type it to execute!`;
+        } else {
+          consoleDiv.innerHTML += `<br>Usage: newcmd <command_name>`;
+        }
+      } else if (customCommands[command]) {
+        customCommands[command]();
       } else {
-        output(`> ${input}\nCommand not found: ${command}`);
+        consoleDiv.innerHTML += `<br>Command not recognized: ${command}`;
       }
-      commandInput.value = '';
+
+      // Keep the console scrolled to the bottom
+      consoleDiv.scrollTop = consoleDiv.scrollHeight;
     }
 
-    function output(text) {
-      const pre = document.createElement('pre');
-      pre.textContent = text;
-      outputElement.appendChild(pre);
-      outputElement.scrollTop = outputElement.scrollHeight;
-    }
-
-    commandInput.addEventListener('keypress', (event) => {
+    // Event listener for the input field
+    inputField.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') {
-        executeCommand();
+        const command = inputField.value.trim();
+        if (command) {
+          consoleDiv.innerHTML += `<br>&gt; ${command}`;
+          handleCommand(command);
+        }
+        inputField.value = ''; // Clear the input field
       }
-    });
-
-    // Make the console draggable
-    consoleElement.onmousedown = function(event) {
-      let shiftX = event.clientX - consoleElement.getBoundingClientRect().left;
-      let shiftY = event.clientY - consoleElement.getBoundingClientRect().top;
-
-      function moveAt(pageX, pageY) {
-        consoleElement.style.left = pageX - shiftX + 'px';
-        consoleElement.style.top = pageY - shiftY + 'px';
-      }
-
-      function onMouseMove(event) {
-        moveAt(event.pageX, event.pageY);
-      }
-
-      document.addEventListener('mousemove', onMouseMove);
-
-      consoleElement.onmouseup = function() {
-        document.removeEventListener('mousemove', onMouseMove);
-        consoleElement.onmouseup = null;
-      };
-    };
-
-    consoleElement.ondragstart = function() {
-      return false;
-    };
-
-    // Toggle fullscreen mode
-    let isFullscreen = false;
-
-    fullscreenButton.addEventListener('click', () => {
-      if (isFullscreen) {
-        document.exitFullscreen();
-      } else {
-        consoleElement.requestFullscreen();
-      }
-      isFullscreen = !isFullscreen;
     });
   </script>
+
 </body>
 </html>
