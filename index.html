@@ -30,6 +30,55 @@
       font-size: 16px;
       margin-top: 10px;
     }
+
+    .draggable-window {
+      width: 300px;
+      height: 200px;
+      background-color: #1a1a1a;
+      border: 2px solid #00ff00;
+      position: absolute;
+      top: 100px;
+      left: 100px;
+      color: #00ff00;
+      overflow: auto;
+      z-index: 10;
+    }
+
+    .draggable-window-header {
+      background-color: #131313;
+      cursor: move;
+      padding: 5px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .draggable-window-content {
+      padding: 10px;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+
+    .close-btn {
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 5px;
+      cursor: pointer;
+      position: absolute;
+      top: 5px;
+      right: 5px;
+    }
+
+    .resize-btn {
+      background-color: #00ff00;
+      color: white;
+      border: none;
+      padding: 5px;
+      cursor: se-resize;
+      position: absolute;
+      bottom: 5px;
+      right: 5px;
+    }
   </style>
 </head>
 <body>
@@ -45,6 +94,72 @@
     function appendToConsole(text) {
       consoleDiv.innerHTML += text + "<br>";
       consoleDiv.scrollTop = consoleDiv.scrollHeight; // Scroll to the bottom
+    }
+
+    // Function to create a draggable and resizable window with HTML content
+    function createDraggableWindow(htmlContent) {
+      const windowDiv = document.createElement('div');
+      windowDiv.classList.add('draggable-window');
+      
+      const headerDiv = document.createElement('div');
+      headerDiv.classList.add('draggable-window-header');
+      headerDiv.innerHTML = "Draggable Window";
+      
+      const contentDiv = document.createElement('div');
+      contentDiv.classList.add('draggable-window-content');
+      contentDiv.innerHTML = htmlContent;
+
+      const closeButton = document.createElement('button');
+      closeButton.classList.add('close-btn');
+      closeButton.innerHTML = "X";
+      closeButton.onclick = () => windowDiv.remove();
+
+      const resizeButton = document.createElement('button');
+      resizeButton.classList.add('resize-btn');
+      resizeButton.innerHTML = "⇲";
+
+      windowDiv.appendChild(headerDiv);
+      windowDiv.appendChild(contentDiv);
+      windowDiv.appendChild(closeButton);
+      windowDiv.appendChild(resizeButton);
+
+      document.body.appendChild(windowDiv);
+
+      // Make the window draggable
+      headerDiv.onmousedown = (e) => {
+        let offsetX = e.clientX - windowDiv.offsetLeft;
+        let offsetY = e.clientY - windowDiv.offsetTop;
+
+        document.onmousemove = (e) => {
+          windowDiv.style.left = `${e.clientX - offsetX}px`;
+          windowDiv.style.top = `${e.clientY - offsetY}px`;
+        };
+
+        document.onmouseup = () => {
+          document.onmousemove = null;
+          document.onmouseup = null;
+        };
+      };
+
+      // Make the window resizable
+      resizeButton.onmousedown = (e) => {
+        let initialWidth = windowDiv.offsetWidth;
+        let initialHeight = windowDiv.offsetHeight;
+        let initialX = e.clientX;
+        let initialY = e.clientY;
+
+        document.onmousemove = (e) => {
+          let newWidth = initialWidth + (e.clientX - initialX);
+          let newHeight = initialHeight + (e.clientY - initialY);
+          windowDiv.style.width = `${newWidth}px`;
+          windowDiv.style.height = `${newHeight}px`;
+        };
+
+        document.onmouseup = () => {
+          document.onmousemove = null;
+          document.onmouseup = null;
+        };
+      };
     }
 
     // Handle the command input
@@ -101,7 +216,7 @@
         case 'load':
           fetch(argument)
             .then(response => response.text())
-            .then(data => appendToConsole(data))
+            .then(data => createDraggableWindow(data))
             .catch(error => appendToConsole('Error loading URL'));
           break;
 
