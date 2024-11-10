@@ -53,11 +53,10 @@
       left: 50px;
       width: 480px;
       height: 500px;
-      background-color: #2e2e2e;
-      color: white;
+      background-color: #ffffff;
       border-radius: 5px;
       box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-      overflow: auto;
+      overflow: hidden;
       z-index: 1000;
     }
 
@@ -71,9 +70,9 @@
     }
 
     .window-content {
-      padding: 10px;
-      font-size: 14px;
-      white-space: pre-wrap;
+      width: 100%;
+      height: calc(100% - 40px);
+      border: none;
     }
 
     #console-footer {
@@ -107,9 +106,9 @@
 
     function processCommand(command) {
       if (command.startsWith("load ")) {
-        loadRawHTML(command.substring(5).trim());
+        loadHTML(command.substring(5).trim());
       } else if (command === "unload") {
-        unloadRawHTML();
+        unloadHTML();
       } else if (command === "clear") {
         consoleElement.innerHTML = "";
       } else {
@@ -117,40 +116,34 @@
       }
     }
 
-    function loadRawHTML(url) {
-      fetch(url)
-        .then(response => response.text())
-        .then(data => {
-          // Create a fixed 480x500 window to display the raw HTML content
-          if (loadedWindow) {
-            document.body.removeChild(loadedWindow);
-          }
+    function loadHTML(url) {
+      // Remove any existing window before loading a new one
+      if (loadedWindow) {
+        document.body.removeChild(loadedWindow);
+      }
 
-          loadedWindow = document.createElement("div");
-          loadedWindow.classList.add("window");
+      // Create a new 480x500 window for displaying the HTML
+      loadedWindow = document.createElement("div");
+      loadedWindow.classList.add("window");
 
-          const windowHeader = document.createElement("div");
-          windowHeader.classList.add("window-header");
-          windowHeader.textContent = "Raw HTML Window";
+      const windowHeader = document.createElement("div");
+      windowHeader.classList.add("window-header");
+      windowHeader.textContent = "HTML Viewer";
 
-          const windowContent = document.createElement("div");
-          windowContent.classList.add("window-content");
-          windowContent.textContent = data; // Display raw HTML as text
+      const iframe = document.createElement("iframe");
+      iframe.classList.add("window-content");
+      iframe.src = url;
 
-          loadedWindow.appendChild(windowHeader);
-          loadedWindow.appendChild(windowContent);
-          document.body.appendChild(loadedWindow);
-        })
-        .catch(error => {
-          consoleElement.innerHTML += `Failed to load URL: ${error.message}\n`;
-        });
+      loadedWindow.appendChild(windowHeader);
+      loadedWindow.appendChild(iframe);
+      document.body.appendChild(loadedWindow);
     }
 
-    function unloadRawHTML() {
+    function unloadHTML() {
       if (loadedWindow) {
         document.body.removeChild(loadedWindow);
         loadedWindow = null;
-        consoleElement.innerHTML += "Raw HTML window unloaded.\n";
+        consoleElement.innerHTML += "HTML window unloaded.\n";
       }
     }
   </script>
