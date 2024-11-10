@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Command Handler</title>
+  <title>Command Prompt with HTML Loading</title>
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-
     body {
       font-family: 'Courier New', Courier, monospace;
       background-color: #121212;
@@ -18,11 +17,7 @@
       height: 100vh;
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;
-      align-items: stretch;
-      padding: 0;
     }
-
     #console {
       flex: 1;
       overflow-y: auto;
@@ -31,7 +26,6 @@
       font-size: 16px;
       white-space: pre-wrap;
     }
-
     input {
       width: 100%;
       background-color: #121212;
@@ -41,12 +35,6 @@
       font-size: 16px;
       outline: none;
     }
-
-    input:focus {
-      border: none;
-      box-shadow: 0 0 5px 2px #00ff00;
-    }
-
     .window {
       position: absolute;
       top: 50px;
@@ -59,7 +47,6 @@
       overflow: hidden;
       z-index: 1000;
     }
-
     .window-header {
       background-color: #333;
       color: #fff;
@@ -68,28 +55,16 @@
       user-select: none;
       border-radius: 5px 5px 0 0;
     }
-
     .window-content {
       width: 100%;
       height: calc(100% - 40px);
       border: none;
-    }
-
-    #console-footer {
-      background-color: #333;
-      color: white;
-      padding: 5px;
-      text-align: center;
     }
   </style>
 </head>
 <body>
   <div id="console"></div>
   <input type="text" id="commandInput" placeholder="Enter command" />
-
-  <div id="console-footer">
-    Command Handler v1.0
-  </div>
 
   <script>
     const consoleElement = document.getElementById("console");
@@ -106,9 +81,9 @@
 
     function processCommand(command) {
       if (command.startsWith("load ")) {
-        loadHTML(command.substring(5).trim());
+        loadURL(command.substring(5).trim());
       } else if (command === "unload") {
-        unloadHTML();
+        unloadWindow();
       } else if (command === "clear") {
         consoleElement.innerHTML = "";
       } else {
@@ -116,13 +91,11 @@
       }
     }
 
-    function loadHTML(url) {
-      // Remove any existing window before loading a new one
+    function loadURL(url) {
       if (loadedWindow) {
         document.body.removeChild(loadedWindow);
       }
 
-      // Create a new 480x500 window for displaying the HTML
       loadedWindow = document.createElement("div");
       loadedWindow.classList.add("window");
 
@@ -132,14 +105,14 @@
 
       const iframe = document.createElement("iframe");
       iframe.classList.add("window-content");
-      iframe.src = url;
+      iframe.src = url;  // Loads the URL as a live webpage
 
       loadedWindow.appendChild(windowHeader);
       loadedWindow.appendChild(iframe);
       document.body.appendChild(loadedWindow);
     }
 
-    function unloadHTML() {
+    function unloadWindow() {
       if (loadedWindow) {
         document.body.removeChild(loadedWindow);
         loadedWindow = null;
