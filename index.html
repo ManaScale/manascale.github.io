@@ -21,6 +21,12 @@
       border-radius: 8px;
       width: 500px;
       max-width: 100%;
+      position: absolute; /* Allow for dragging */
+      top: 50px; /* Initial position */
+      left: 50px; /* Initial position */
+      resize: both;
+      overflow: auto;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
     }
     .output {
       height: 200px;
@@ -51,10 +57,22 @@
       color: #fff;
       cursor: pointer;
     }
+    .fullscreen-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 5px 10px;
+      background-color: #555;
+      border: none;
+      border-radius: 4px;
+      color: #fff;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <div class="console">
+  <div class="console" id="console">
+    <button class="fullscreen-button" id="fullscreenButton">Fullscreen</button>
     <div class="output" id="output"></div>
     <div class="input">
       <input type="text" id="commandInput" placeholder="Enter command...">
@@ -65,6 +83,8 @@
   <script>
     const outputElement = document.getElementById('output');
     const commandInput = document.getElementById('commandInput');
+    const consoleElement = document.getElementById('console');
+    const fullscreenButton = document.getElementById('fullscreenButton');
 
     const commandRegistry = {};
 
@@ -113,6 +133,44 @@
       if (event.key === 'Enter') {
         executeCommand();
       }
+    });
+
+    // Make the console draggable
+    consoleElement.onmousedown = function(event) {
+      let shiftX = event.clientX - consoleElement.getBoundingClientRect().left;
+      let shiftY = event.clientY - consoleElement.getBoundingClientRect().top;
+
+      function moveAt(pageX, pageY) {
+        consoleElement.style.left = pageX - shiftX + 'px';
+        consoleElement.style.top = pageY - shiftY + 'px';
+      }
+
+      function onMouseMove(event) {
+        moveAt(event.pageX, event.pageY);
+      }
+
+      document.addEventListener('mousemove', onMouseMove);
+
+      consoleElement.onmouseup = function() {
+        document.removeEventListener('mousemove', onMouseMove);
+        consoleElement.onmouseup = null;
+      };
+    };
+
+    consoleElement.ondragstart = function() {
+      return false;
+    };
+
+    // Toggle fullscreen mode
+    let isFullscreen = false;
+
+    fullscreenButton.addEventListener('click', () => {
+      if (isFullscreen) {
+        document.exitFullscreen();
+      } else {
+        consoleElement.requestFullscreen();
+      }
+      isFullscreen = !isFullscreen;
     });
   </script>
 </body>
