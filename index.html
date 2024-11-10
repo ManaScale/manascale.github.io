@@ -53,12 +53,22 @@
       color: #fff;
       padding: 10px;
       border-radius: 5px;
-      width: 80%;
-      height: 80%;
+      width: 300px;
+      height: 200px;
       overflow: auto;
       resize: both;
       box-sizing: border-box;
       z-index: 999;
+    }
+
+    .resizable-handle {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 16px;
+      height: 16px;
+      background-color: #00ff00;
+      cursor: se-resize;
     }
   </style>
 </head>
@@ -90,6 +100,11 @@
       window.classList.add('draggable');
       window.innerHTML = rawHtml;
 
+      // Add resizable handle
+      const resizableHandle = document.createElement('div');
+      resizableHandle.classList.add('resizable-handle');
+      window.appendChild(resizableHandle);
+
       // Add window to the array
       loadedWindows.push(window);
 
@@ -112,6 +127,34 @@
 
       window.addEventListener('mouseup', () => {
         isDragging = false;
+      });
+
+      // Make the window resizable
+      let isResizing = false;
+      let initialWidth, initialHeight, initialMouseX, initialMouseY;
+
+      resizableHandle.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        initialWidth = window.offsetWidth;
+        initialHeight = window.offsetHeight;
+        initialMouseX = e.clientX;
+        initialMouseY = e.clientY;
+        e.preventDefault(); // Prevent text selection while resizing
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (isResizing) {
+          const widthDiff = e.clientX - initialMouseX;
+          const heightDiff = e.clientY - initialMouseY;
+          window.style.width = `${initialWidth + widthDiff}px`;
+          window.style.height = `${initialHeight + heightDiff}px`;
+        }
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (isResizing) {
+          isResizing = false;
+        }
       });
 
       document.body.appendChild(window);
